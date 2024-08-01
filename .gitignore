@@ -1,0 +1,13 @@
+*.o
+*.crf
+*.d
+*.uvguix.*
+*tags
+*JLink*
+*.bin
+*.uvgui.*
+*.obj
+*.lst
+*.htm
+/driver_code_base
+/**/build
