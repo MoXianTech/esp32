@@ -26,7 +26,7 @@
 #include "lcdfont.h"
 
 
-#define SPI_LCD_TYPE    1           /* SPI接口屏幕类型（1：2.4寸SPILCD  0：1.3寸SPILCD） */
+#define SPI_LCD_TYPE    0           /* SPI接口屏幕类型（1：2.4寸SPILCD  0：1.3寸SPILCD） */  
 
 spi_device_handle_t MY_LCD_Handle;
 uint8_t lcd_buf[LCD_TOTAL_BUF_SIZE];
@@ -86,7 +86,7 @@ void lcd_write_data16(uint16_t data)
  * @retval      无
  */
 void lcd_set_window(uint16_t xstar, uint16_t ystar,uint16_t xend,uint16_t yend)
-{
+{	
     uint8_t databuf[4] = {0,0,0,0};
     databuf[0] = xstar >> 8;
     databuf[1] = 0xFF & xstar;
@@ -103,7 +103,7 @@ void lcd_set_window(uint16_t xstar, uint16_t ystar,uint16_t xend,uint16_t yend)
     lcd_write_data(databuf,4);
 
     lcd_write_cmd(lcd_self.wramcmd);    /* 开始写入GRAM */
-}
+}   
 
 /**
  * @brief       以一种颜色清空LCD屏
@@ -117,7 +117,7 @@ void lcd_clear(uint16_t color)
 
     data[0] = color >> 8;
     data[1] = color;
-
+    
     lcd_set_window(0, 0, lcd_self.width - 1, lcd_self.height - 1);
 
     for(j = 0; j < LCD_BUF_SIZE / 2; j++)
@@ -168,8 +168,8 @@ void lcd_fill(uint16_t sx, uint16_t sy, uint16_t ex, uint16_t ey, uint16_t color
  */
 void lcd_set_cursor(uint16_t xpos, uint16_t ypos)
 {
-    lcd_set_window(xpos,ypos,xpos,ypos);
-}
+    lcd_set_window(xpos,ypos,xpos,ypos);	
+} 
 
 /**
  * @brief       设置LCD的自动扫描方向(对RGB屏无效)
@@ -225,12 +225,12 @@ void lcd_scan_dir(uint8_t dir)
     }
 
     dirreg = 0x36;                              /* 对绝大部分驱动IC, 由0X36寄存器控制 */
-
+    
     uint8_t date_send[1] = {regval};
-
+    
     lcd_write_cmd(dirreg);
     lcd_write_data(date_send,1);
-
+    
     if (regval & 0x20)
     {
         if (lcd_self.width < lcd_self.height)   /* 交换X,Y */
@@ -249,7 +249,7 @@ void lcd_scan_dir(uint8_t dir)
             lcd_self.height = temp;
         }
     }
-
+    
     lcd_set_window(0, 0, lcd_self.width,lcd_self.height);
 }
 
@@ -261,7 +261,7 @@ void lcd_scan_dir(uint8_t dir)
 void lcd_display_dir(uint8_t dir)
 {
     lcd_self.dir = dir;
-
+    
     if (lcd_self.dir == 0)                  /* 竖屏 */
     {
         lcd_self.width      = 240;
@@ -319,16 +319,16 @@ void lcd_draw_pixel(uint16_t x, uint16_t y, uint16_t color)
  */
 void lcd_draw_line(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color)
 {
-    uint16_t t;
-    int xerr = 0, yerr = 0, delta_x, delta_y, distance;
-
-    int incx, incy, urow, ucol;
+    uint16_t t; 
+    int xerr = 0, yerr = 0, delta_x, delta_y, distance; 
+    
+    int incx, incy, urow, ucol; 
 
     delta_x = x2 - x1;                      /* 计算坐标增量 */
-    delta_y = y2 - y1;
-    urow = x1;
-    ucol = y1;
-
+    delta_y = y2 - y1; 
+    urow = x1; 
+    ucol = y1; 
+    
     if (delta_x > 0)
     {
         incx = 1;                           /* 设置单步方向 */
@@ -341,10 +341,10 @@ void lcd_draw_line(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t 
     {
         incx =-1;
         delta_x =-delta_x;
-    }
+    } 
     if(delta_y > 0)
     {
-        incy = 1;
+        incy = 1; 
     }
     else if(delta_y == 0)
     {
@@ -354,35 +354,35 @@ void lcd_draw_line(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t 
     {
         incy =-1;
         delta_y=-delta_y;
-    }
-
+    } 
+    
     if( delta_x>delta_y)
     {
         distance = delta_x;                 /* 选取基本增量坐标轴 */
     }
     else
     {
-        distance = delta_y;
+        distance = delta_y; 
     }
-
+    
     for (t = 0;t <= distance + 1;t++ )      /* 画线输出 */
     {
-        lcd_draw_pixel(urow,ucol,color);    /* 画点 */
-        xerr += delta_x ;
-        yerr += delta_y ;
-
+        lcd_draw_pixel(urow,ucol,color);    /* 画点 */ 
+        xerr += delta_x ; 
+        yerr += delta_y ; 
+        
         if(xerr>distance)
-        {
-            xerr -= distance;
-            urow += incx;
-        }
-
+        { 
+            xerr -= distance; 
+            urow += incx; 
+        } 
+        
         if (yerr > distance)
-        {
-            yerr -= distance;
-            ucol += incy;
-        }
-    }
+        { 
+            yerr -= distance; 
+            ucol += incy; 
+        } 
+    } 
 }
 
 /**
@@ -511,7 +511,7 @@ void lcd_show_char(uint16_t x, uint16_t y, uint8_t chr, uint8_t size, uint8_t mo
     if (size != 24)
     {
         csize = (size / 8 + ((size % 8) ? 1 : 0)) * (size / 2);
-
+        
         for (t = 0; t < csize; t++)
         {
             temp = pfont[t];                                /* 获取字符的点阵数据 */
@@ -535,7 +535,7 @@ void lcd_show_char(uint16_t x, uint16_t y, uint8_t chr, uint8_t size, uint8_t mo
     else
     {
         csize = (size * 16) / 8;
-
+        
         for (t = 0; t < csize; t++)
         {
             temp = asc2_2412[chr][t];
@@ -723,11 +723,11 @@ void lcd_init(void)
 {
     int cmd = 0;
     esp_err_t ret = 0;
-
+    
     lcd_self.dir = 0;
     lcd_self.wr = LCD_NUM_WR;                                       /* 配置WR引脚 */
     lcd_self.cs = LCD_NUM_CS;                                       /* 配置CS引脚 */
-
+    
     gpio_config_t gpio_init_struct;
 
     /* SPI驱动接口配置 */
@@ -737,7 +737,7 @@ void lcd_init(void)
         .spics_io_num = lcd_self.cs,                                /* SPI设备引脚 */
         .queue_size = 7,                                            /* 事务队列尺寸 7个 */
     };
-
+    
     /* 添加SPI总线设备 */
     ret = spi_bus_add_device(SPI2_HOST, &devcfg, &MY_LCD_Handle);   /* 配置SPI总线设备 */
     ESP_ERROR_CHECK(ret);
@@ -791,12 +791,12 @@ void lcd_init(void)
     {
         lcd_write_cmd(ili_init_cmds[cmd].cmd);
         lcd_write_data(ili_init_cmds[cmd].data, ili_init_cmds[cmd].databytes & 0x1F);
-
+        
         if (ili_init_cmds[cmd].databytes & 0x80)
         {
             vTaskDelay(120);
         }
-
+        
         cmd++;
     }
 

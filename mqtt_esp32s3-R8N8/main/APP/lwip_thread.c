@@ -17,6 +17,7 @@
 #include "wifi_config.h"
 
 
+
 int g_publish_flag = 0;/* 发布成功标志位 */
 static const char *TAG = "MQTT_EXAMPLE";
 char g_lcd_buff[100] = {0};
@@ -69,7 +70,6 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
             /* 订阅主题 */
             msg_id = esp_mqtt_client_subscribe(client, DEVICE_SUBSCRIBE, 0);
             ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
-            lcd_show_string(50, 80, 240, 16, 16, "mqtt connect success !", BLUE);
             break;
         case MQTT_EVENT_DISCONNECTED:   /* 断开连接事件 */
 
@@ -163,7 +163,9 @@ void lwip_thread(void *pvparams)
     queue_pressure_t queue_pressure = {0};
     cJSON *mqtt_json_base = NULL, *mqtt_json_param = NULL;
     char *mqtt_buffer = NULL;
+#ifdef ENABLE_LCD
     char lcd_buffer_display[64] = {0};
+#endif
 
     wifi_sta_init();
     lwip_init(&mqtt_client_handle, mqtt_json_base);
@@ -196,18 +198,21 @@ void lwip_thread(void *pvparams)
         esp_mqtt_client_publish(mqtt_client_handle, DEVICE_SENSOR_INFO_POS, mqtt_buffer, strlen(mqtt_buffer), 1, 0);
         cJSON_free(mqtt_buffer);
 
-        sprintf(lcd_buffer_display, "MQTT %s&%s", PRODUCT_KEY, DEVICE_NAME);
-        lcd_show_string(50, 100, 240, 16, 16, lcd_buffer_display, RED);
-
+#ifdef ENABLE_LCD
         sprintf(lcd_buffer_display, "temp %0.1f humi %0.1f",
                                     queue_temp_humi.temp_value,
                                     queue_temp_humi.humi_value);
-        lcd_show_string(50, 120, 240, 16, 16, lcd_buffer_display, RED);
+        lcd_show_string(0, 200, 240, 16, 16, lcd_buffer_display, RED);
 
         memset(lcd_buffer_display, 0x00, 64);
         sprintf(lcd_buffer_display, "pre %10ld", queue_pressure.pressure_sum_value);
-        lcd_show_string(50, 140, 240, 16, 16, lcd_buffer_display, RED);
-        vTaskDelay(3000);
+        lcd_show_string(0, 220, 240, 16, 16, lcd_buffer_display, RED);
+#endif
+        ESP_LOGI(__FUNCTION__, "temp %0.1f humi %0.1f Press %ld",
+                                queue_temp_humi.temp_value,
+                                queue_temp_humi.humi_value,
+                                queue_pressure.pressure_sum_value);
+        vTaskDelay(1000);
     }
 
     lwip_deinit(&mqtt_client_handle);

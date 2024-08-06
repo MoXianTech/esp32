@@ -6,6 +6,8 @@
 #include "freertos/event_groups.h"
 #include "esp_log.h"
 
+//#define ENABLE_LCD
+
 typedef struct {
     float temp_value;
     float humi_value;

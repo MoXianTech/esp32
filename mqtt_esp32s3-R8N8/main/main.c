@@ -57,9 +57,11 @@ void app_main(void)
     led_init();                         /* 初始化LED */
     i2c0_master = iic_init(I2C_NUM_0);  /* 初始化IIC0 */
     spi2_init();                        /* 初始化SPI2 */
-    xl9555_init(i2c0_master);           /* IO扩展芯片初始化 */
-    lcd_init();                         /* 初始化LCD */
-    ap3216c_init(i2c0_master);                          /* 初始化AP3216C */
 
+    {
+        ESP_LOGI(__FUNCTION__, "test_once");
+        vTaskDelay(100);
+    }
+    
     thraed_work_init();
 }

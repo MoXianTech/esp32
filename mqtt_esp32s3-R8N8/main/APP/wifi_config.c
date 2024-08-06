@@ -50,28 +50,30 @@ char lcd_buff[100] = {0};
  */
 void connet_display(uint8_t flag)
 {
+#ifdef ENABLE_LCD
     if((flag & 0x80) == 0x80)
     {
-        lcd_fill(0,0,320,240,WHITE);
+        lcd_fill(0,90,320,240,WHITE);
         sprintf(lcd_buff, "ssid:%s",DEFAULT_SSID);
-        lcd_show_string(50, 0, 240, 16, 16, lcd_buff, BLUE);
+        lcd_show_string(0, 90, 240, 16, 16, lcd_buff, BLUE);
         sprintf(lcd_buff, "psw:%s",DEFAULT_PWD);
-        lcd_show_string(50, 20, 240, 16, 16, lcd_buff, BLUE);
+        lcd_show_string(0, 110, 240, 16, 16, lcd_buff, BLUE);
+        lcd_show_string(0, 130, 200, 16, 16, "KEY0:Send data", MAGENTA);
     }
     else if ((flag & 0x04) == 0x04)
     {
-        lcd_show_string(50, 40, 240, 16, 16, "wifi connecting......", BLUE);
+        lcd_show_string(0, 90, 240, 16, 16, "wifi connecting......", BLUE);
     }
     else if ((flag & 0x02) == 0x02)
     {
-        lcd_show_string(50, 40, 240, 16, 16, "wifi connecting fail", BLUE);
+        lcd_show_string(0, 90, 240, 16, 16, "wifi connecting fail", BLUE);
     }
     else if ((flag & 0x01) == 0x01)
     {
         printf("%s\r\n",network_connet.ip_buf);
-        lcd_show_string(50, 40, 240, 16, 16, "wifi connect success !", BLUE);
-        lcd_show_string(50, 60, 200, 16, 16, (char*)network_connet.ip_buf, MAGENTA);
+        lcd_show_string(0, 150, 200, 16, 16, (char*)network_connet.ip_buf, MAGENTA);
     }
+#endif
 
     network_connet.connet_state &= 0x00;
 }
@@ -151,7 +153,6 @@ void wifi_sta_init(void)
     ESP_ERROR_CHECK(esp_event_loop_create_default());
     sta_netif= esp_netif_create_default_wifi_sta();
     assert(sta_netif);
-        lcd_show_string(50, 40, 240, 16, 16, "wifi connecting......", BLUE);
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK( esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL) );
     ESP_ERROR_CHECK( esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &wifi_event_handler, NULL) );

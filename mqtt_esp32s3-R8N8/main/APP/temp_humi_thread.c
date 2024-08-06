@@ -22,7 +22,7 @@ void temp_humi_thread(void *pvparams)
 
         ESP_LOGI(__FUNCTION__, "temp %0.1f, humi %0.1f tags 0x%X",
                                 temp / 10.0, humi / 10.0, thread_pvparam->tags);
-        vTaskDelay(6000);
+        vTaskDelay(3000);
     }
 
 }
