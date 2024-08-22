@@ -8,7 +8,9 @@ set(src_dirs
             cJSON
             AHT20
             USART
-            SENSOR)
+            SENSOR
+            rs2251_usart
+            BEEP)
 
 set(include_dirs
             IIC
@@ -20,7 +22,9 @@ set(include_dirs
             cJSON
             AHT20
             USART
-            SENSOR)
+            SENSOR
+            rs2251_usart
+            BEEP)
 
 set(requires
             driver)

@@ -53,25 +53,25 @@ void connet_display(uint8_t flag)
 #ifdef ENABLE_LCD
     if((flag & 0x80) == 0x80)
     {
-        lcd_fill(0,90,320,240,WHITE);
+        lcd_fill(0,0,320,240,WHITE);
         sprintf(lcd_buff, "ssid:%s",DEFAULT_SSID);
-        lcd_show_string(0, 90, 240, 16, 16, lcd_buff, BLUE);
+        lcd_show_string(50, 0, 240, 16, 16, lcd_buff, BLUE);
         sprintf(lcd_buff, "psw:%s",DEFAULT_PWD);
-        lcd_show_string(0, 110, 240, 16, 16, lcd_buff, BLUE);
-        lcd_show_string(0, 130, 200, 16, 16, "KEY0:Send data", MAGENTA);
+        lcd_show_string(50, 20, 240, 16, 16, lcd_buff, BLUE);
     }
     else if ((flag & 0x04) == 0x04)
     {
-        lcd_show_string(0, 90, 240, 16, 16, "wifi connecting......", BLUE);
+        lcd_show_string(50, 40, 240, 16, 16, "wifi connecting......", BLUE);
     }
     else if ((flag & 0x02) == 0x02)
     {
-        lcd_show_string(0, 90, 240, 16, 16, "wifi connecting fail", BLUE);
+        lcd_show_string(50, 40, 240, 16, 16, "wifi connecting fail", BLUE);
     }
     else if ((flag & 0x01) == 0x01)
     {
         printf("%s\r\n",network_connet.ip_buf);
-        lcd_show_string(0, 150, 200, 16, 16, (char*)network_connet.ip_buf, MAGENTA);
+        lcd_show_string(50, 40, 240, 16, 16, "wifi connect success !", BLUE);
+        lcd_show_string(50, 60, 200, 16, 16, (char*)network_connet.ip_buf, MAGENTA);
     }
 #endif
 

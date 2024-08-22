@@ -16,6 +16,7 @@
 
 /* 串口接收相关定义 */
 #define RX_BUF_SIZE         1024    /* 环形缓冲区大小 */
+#define TX_BUF_SIZE         1024    /* 环形缓冲区大小 */
 
 /* 函数声明 */
 void usart_init(uint32_t baudrate,

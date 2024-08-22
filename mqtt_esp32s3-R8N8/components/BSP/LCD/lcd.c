@@ -26,7 +26,7 @@
 #include "lcdfont.h"
 
 
-#define SPI_LCD_TYPE    0           /* SPI接口屏幕类型（1：2.4寸SPILCD  0：1.3寸SPILCD） */  
+#define SPI_LCD_TYPE    1           /* SPI接口屏幕类型（1：2.4寸SPILCD  0：1.3寸SPILCD） */  
 
 spi_device_handle_t MY_LCD_Handle;
 uint8_t lcd_buf[LCD_TOTAL_BUF_SIZE];

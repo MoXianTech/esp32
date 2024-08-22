@@ -15,6 +15,7 @@
 #include "thread_init.h"
 #include "lwip_thread.h"
 #include "wifi_config.h"
+#include "beep.h"
 
 
 
@@ -154,6 +155,7 @@ void lwip_send_demo(esp_mqtt_client_handle_t *mqtt_client_handle)
 esp_mqtt_client_publish(*mqtt_client_handle, DEVICE_SENSOR_INFO_POS, mqtt_publish_data, strlen(mqtt_publish_data), 1, 0);
 }
 
+#define PRESSURE_COM_DEF "Pressure_com"
 
 void lwip_thread(void *pvparams)
 {
@@ -163,10 +165,15 @@ void lwip_thread(void *pvparams)
     queue_pressure_t queue_pressure = {0};
     cJSON *mqtt_json_base = NULL, *mqtt_json_param = NULL;
     char *mqtt_buffer = NULL;
+    char cache_buffer[32] = {0x00};
+    uint8_t cache_count = 0;
+    uint64_t timer_count = 0;
+    uint32_t display_color = 0;
 #ifdef ENABLE_LCD
     char lcd_buffer_display[64] = {0};
 #endif
 
+    beep_init();
     wifi_sta_init();
     lwip_init(&mqtt_client_handle, mqtt_json_base);
 
@@ -180,7 +187,13 @@ void lwip_thread(void *pvparams)
     cJSON_AddItemToObject(mqtt_json_param, "Temperature", cJSON_CreateNumber(0));
     cJSON_AddItemToObject(mqtt_json_param, "Humidity", cJSON_CreateNumber(0));
     cJSON_AddItemToObject(mqtt_json_param, "illumination", cJSON_CreateNumber(0));
-    cJSON_AddItemToObject(mqtt_json_param, "Pressure", cJSON_CreateNumber(0));
+
+    for(cache_count = 0; cache_count < PORT_USART_NUM; cache_count ++)
+    {
+        sprintf(cache_buffer, "%s%u", PRESSURE_COM_DEF, cache_count);
+        cJSON_AddItemToObject(mqtt_json_param, cache_buffer, cJSON_CreateNumber(0));
+        memset(cache_buffer, 0x00, sizeof(cache_buffer));
+    }
 
     while(1)
     {
@@ -191,28 +204,62 @@ void lwip_thread(void *pvparams)
         }
         if (xQueueReceive(thread_pvparam->queue_pressure, &queue_pressure, 100) == pdPASS)
         {
-            cJSON_ReplaceItemInObject(mqtt_json_param, "Pressure", cJSON_CreateNumber(queue_pressure.pressure_sum_value));
+            for(cache_count = 0; cache_count < PORT_USART_NUM; cache_count ++)
+            {
+                if ((queue_pressure.port_connect_flag & (0x01 << cache_count)) == (0x01 << cache_count))
+                {
+                    sprintf(cache_buffer, "%s%u", PRESSURE_COM_DEF, cache_count);
+                    cJSON_ReplaceItemInObject(mqtt_json_param,
+                                              cache_buffer,
+                                              cJSON_CreateNumber(queue_pressure.pressure_context[cache_count].pressure_sum_value));
+                    memset(cache_buffer, 0x00, sizeof(cache_buffer));
+                }
+            }
         }
 
-        mqtt_buffer = cJSON_Print(mqtt_json_base);
-        esp_mqtt_client_publish(mqtt_client_handle, DEVICE_SENSOR_INFO_POS, mqtt_buffer, strlen(mqtt_buffer), 1, 0);
-        cJSON_free(mqtt_buffer);
+        if ((timer_count % 5) == 0)
+        {
+            mqtt_buffer = cJSON_Print(mqtt_json_base);
+            esp_mqtt_client_publish(mqtt_client_handle, DEVICE_SENSOR_INFO_POS, mqtt_buffer, strlen(mqtt_buffer), 1, 0);
+            //ESP_LOGI(__FUNCTION__, "%s", mqtt_buffer);
+            cJSON_free(mqtt_buffer);
+        }
 
 #ifdef ENABLE_LCD
+        sprintf(lcd_buffer_display, "MQTT %s&%s", PRODUCT_KEY, DEVICE_NAME);
+        lcd_show_string(50, 80, 240, 16, 16, lcd_buffer_display, RED);
+
         sprintf(lcd_buffer_display, "temp %0.1f humi %0.1f",
                                     queue_temp_humi.temp_value,
                                     queue_temp_humi.humi_value);
-        lcd_show_string(0, 200, 240, 16, 16, lcd_buffer_display, RED);
+        lcd_show_string(50, 100, 240, 24, 24, lcd_buffer_display, RED);
 
         memset(lcd_buffer_display, 0x00, 64);
-        sprintf(lcd_buffer_display, "pre %10ld", queue_pressure.pressure_sum_value);
-        lcd_show_string(0, 220, 240, 16, 16, lcd_buffer_display, RED);
+        for(cache_count = 0; cache_count < PORT_USART_NUM; cache_count ++)
+        {
+            if ((queue_pressure.port_connect_flag & (0x01 << cache_count)) == (0x01 << cache_count))
+            {
+                sprintf(lcd_buffer_display, "com_%d %5ld", cache_count, queue_pressure.pressure_context[cache_count].pressure_sum_value);
+                display_color = BLUE;
+            } else {
+                sprintf(lcd_buffer_display, "com_%d NULL!", cache_count);
+                display_color = RED;
+            }
+            if ((cache_count % 2) == 0)
+                lcd_show_string(50, 140 + cache_count/2 * 20, 240, 16, 16, lcd_buffer_display, display_color);
+            else
+                lcd_show_string(160, 140 + cache_count/2 * 20, 240, 16, 16, lcd_buffer_display, display_color);
+        }
+
 #endif
+#ifdef DEBUG_LWIP_DATA
         ESP_LOGI(__FUNCTION__, "temp %0.1f humi %0.1f Press %ld",
                                 queue_temp_humi.temp_value,
                                 queue_temp_humi.humi_value,
-                                queue_pressure.pressure_sum_value);
-        vTaskDelay(1000);
+                                queue_pressure.pressure_context[0].pressure_sum_value);
+#endif
+        timer_count ++;
+        vTaskDelay(200);
     }
 
     lwip_deinit(&mqtt_client_handle);

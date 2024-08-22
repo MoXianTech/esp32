@@ -30,6 +30,12 @@ void usart_init(uint32_t baudrate,
     uart_set_pin(uart_port, gpio_tx, gpio_rx, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
 
     /* 安装串口驱动 */
-    uart_driver_install(uart_port, RX_BUF_SIZE * 4, RX_BUF_SIZE * 2, 20, NULL, 0);
+    uart_driver_install(uart_port, RX_BUF_SIZE * 4, TX_BUF_SIZE * 2, 20, NULL, 0);
 }
 
+
+void usart_deinit(uart_port_t uart_port)
+{
+    /* 删除串口驱动 */
+    uart_driver_delete(uart_port);
+}

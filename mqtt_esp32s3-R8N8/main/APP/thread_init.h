@@ -6,7 +6,7 @@
 #include "freertos/event_groups.h"
 #include "esp_log.h"
 
-//#define ENABLE_LCD
+#define PORT_USART_NUM 8
 
 typedef struct {
     float temp_value;
@@ -17,8 +17,16 @@ typedef struct {
     uint32_t pressure_sum_value;
     uint16_t pressure_max_value;
     uint16_t pressure_min_value;
+} single_pressure_context_t;
+
+typedef struct {
+    uint8_t port_connect_flag;
+    single_pressure_context_t pressure_context[PORT_USART_NUM];
 } queue_pressure_t;
 
+#define thread_malloc pvPortMalloc
+#define thread_free vPortFree
+#define thread_realloc pvPortRealloc
 
 typedef struct {
     QueueHandle_t queue_temp_humi;

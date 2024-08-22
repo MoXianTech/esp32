@@ -1,23 +1,3 @@
-/**
- ****************************************************************************************************
- * @file        main.c
- * @author      正点原子团队(ALIENTEK)
- * @version     V1.0
- * @date        2023-08-26
- * @brief       WIFI Aliyun实验
- * @license     Copyright (c) 2020-2032, 广州市星翼电子科技有限公司
- ****************************************************************************************************
- * @attention
- *
- * 实验平台:正点原子 ESP32-S3 开发板
- * 在线视频:www.yuanzige.com
- * 技术论坛:www.openedv.com
- * 公司网址:www.alientek.com
- * 购买地址:openedv.taobao.com
- *
- ****************************************************************************************************
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -55,13 +35,16 @@ void app_main(void)
     }
 
     led_init();                         /* 初始化LED */
-    i2c0_master = iic_init(I2C_NUM_0);  /* 初始化IIC0 */
     spi2_init();                        /* 初始化SPI2 */
+#ifdef ENABLE_LCD
+    lcd_init();
+#endif
 
+    while(0)
     {
+        vTaskDelay(200);
         ESP_LOGI(__FUNCTION__, "test_once");
-        vTaskDelay(100);
     }
-    
+
     thraed_work_init();
 }
