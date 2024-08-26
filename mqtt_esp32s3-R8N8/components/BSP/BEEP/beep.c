@@ -7,8 +7,8 @@
  */
 void pwm_init(uint8_t resolution, uint16_t freq)
 {
-    ledc_timer_config_t ledc_timer;                 /* LEDC定时器句柄 */
-    ledc_channel_config_t ledc_channel;             /* LEDC通道配置句柄 */
+    ledc_timer_config_t ledc_timer = {0};                 /* LEDC定时器句柄 */
+    ledc_channel_config_t ledc_channel = {0};             /* LEDC通道配置句柄 */
 
     /* 配置LEDC定时器 */
     ledc_timer.duty_resolution = resolution;        /* PWM占空比分辨率 */

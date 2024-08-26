@@ -73,7 +73,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
             ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
             break;
         case MQTT_EVENT_DISCONNECTED:   /* 断开连接事件 */
-
+            ESP_LOGE(TAG, "mqtt disconnect! check wifi connect!!!");
             break;
 
         case MQTT_EVENT_SUBSCRIBED:     /* 取消事件 */
@@ -88,12 +88,11 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
             ESP_LOGI(TAG, "MQTT_EVENT_PUBLISHED, msg_id=%d", event->msg_id);
             break;
         case MQTT_EVENT_DATA:           /* 接收数据事件 */
-            ESP_LOGI(__FUNCTION__, "TOPIC = %.*s\r\n", event->topic_len, event->topic);
+            ESP_LOGD(__FUNCTION__, "TOPIC = %.*s\r\n", event->topic_len, event->topic);
             ESP_LOGI(__FUNCTION__, "DATA = %.*s\r\n", event->data_len, event->data);
 
             break;
         case MQTT_EVENT_ERROR:
-
             if (event->error_handle->error_type == MQTT_ERROR_TYPE_TCP_TRANSPORT)
             {
                 log_error_if_nonzero("reported from esp-tls", event->error_handle->esp_tls_last_esp_err);
@@ -220,7 +219,9 @@ void lwip_thread(void *pvparams)
         if ((timer_count % 5) == 0)
         {
             mqtt_buffer = cJSON_Print(mqtt_json_base);
+#ifndef  RECORD_DEVICE_BOARD
             esp_mqtt_client_publish(mqtt_client_handle, DEVICE_SENSOR_INFO_POS, mqtt_buffer, strlen(mqtt_buffer), 1, 0);
+#endif
             //ESP_LOGI(__FUNCTION__, "%s", mqtt_buffer);
             cJSON_free(mqtt_buffer);
         }
@@ -250,7 +251,6 @@ void lwip_thread(void *pvparams)
             else
                 lcd_show_string(160, 140 + cache_count/2 * 20, 240, 16, 16, lcd_buffer_display, display_color);
         }
-
 #endif
 #ifdef DEBUG_LWIP_DATA
         ESP_LOGI(__FUNCTION__, "temp %0.1f humi %0.1f Press %ld",

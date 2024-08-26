@@ -13,6 +13,7 @@
 #include "ap3216c.h"
 #include "AHT20.h"
 #include "thread_init.h"
+#include "beep.h"
 
 
 i2c_obj_t i2c0_master, i2c1_master;
@@ -40,10 +41,8 @@ void app_main(void)
     lcd_init();
 #endif
 
-    while(0)
-    {
-        vTaskDelay(200);
-        ESP_LOGI(__FUNCTION__, "test_once");
+    while(0) {
+        vTaskDelay(1000);
     }
 
     thraed_work_init();

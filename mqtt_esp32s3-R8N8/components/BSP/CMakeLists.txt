@@ -10,7 +10,8 @@ set(src_dirs
             USART
             SENSOR
             rs2251_usart
-            BEEP)
+            BEEP
+            SDIO)
 
 set(include_dirs
             IIC
@@ -24,10 +25,12 @@ set(include_dirs
             USART
             SENSOR
             rs2251_usart
-            BEEP)
+            BEEP
+            SDIO)
 
 set(requires
-            driver)
+            driver
+            fatfs)
 
 idf_component_register(SRC_DIRS ${src_dirs} INCLUDE_DIRS ${include_dirs} REQUIRES ${requires})
 

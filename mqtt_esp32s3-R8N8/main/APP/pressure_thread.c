@@ -173,7 +173,9 @@ void pressure_thread(void *pvparams)
             if (rt_value <= 0)
             {
                 queue_pressure.port_connect_flag &= (~(0x01 << port_count));
-                ESP_LOGI(__FUNCTION__, "pop pressure %d value err! ret = %d\n", port_count, rt_value);
+#ifdef DEBUG_UART_DATA
+                //ESP_LOGI(__FUNCTION__, "pop pressure %d value err! ret = %d\n", port_count, rt_value);
+#endif
             }
         }
 
