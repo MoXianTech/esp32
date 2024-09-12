@@ -187,6 +187,13 @@ void lwip_thread(void *pvparams)
     cJSON_AddItemToObject(mqtt_json_param, "Humidity", cJSON_CreateNumber(0));
     cJSON_AddItemToObject(mqtt_json_param, "illumination", cJSON_CreateNumber(0));
 
+    
+    cache_buffer[0] = '"';
+    cache_buffer[1] = 0x22;
+    cache_buffer[2] = 0x33;
+    cache_buffer[3] = '"';
+    cJSON_AddItemToObject(mqtt_json_param, "test_bufffer_send", cJSON_CreateRaw(cache_buffer));
+
     for(cache_count = 0; cache_count < PORT_USART_NUM; cache_count ++)
     {
         sprintf(cache_buffer, "%s%u", PRESSURE_COM_DEF, cache_count);
@@ -222,7 +229,7 @@ void lwip_thread(void *pvparams)
 #ifndef  RECORD_DEVICE_BOARD
             esp_mqtt_client_publish(mqtt_client_handle, DEVICE_SENSOR_INFO_POS, mqtt_buffer, strlen(mqtt_buffer), 1, 0);
 #endif
-            //ESP_LOGI(__FUNCTION__, "%s", mqtt_buffer);
+            ESP_LOGI(__FUNCTION__, "%s", mqtt_buffer);
             cJSON_free(mqtt_buffer);
         }
 
@@ -236,6 +243,10 @@ void lwip_thread(void *pvparams)
         lcd_show_string(50, 100, 240, 24, 24, lcd_buffer_display, RED);
 
         memset(lcd_buffer_display, 0x00, 64);
+        sprintf(lcd_buffer_display, "com bsp %lu", queue_pressure.com_bsp);
+        lcd_show_string(50, 130, 240, 16, 16, lcd_buffer_display, RED);
+
+        memset(lcd_buffer_display, 0x00, 64);
         for(cache_count = 0; cache_count < PORT_USART_NUM; cache_count ++)
         {
             if ((queue_pressure.port_connect_flag & (0x01 << cache_count)) == (0x01 << cache_count))
@@ -247,9 +258,9 @@ void lwip_thread(void *pvparams)
                 display_color = RED;
             }
             if ((cache_count % 2) == 0)
-                lcd_show_string(50, 140 + cache_count/2 * 20, 240, 16, 16, lcd_buffer_display, display_color);
+                lcd_show_string(50, 150 + cache_count/2 * 20, 240, 16, 16, lcd_buffer_display, display_color);
             else
-                lcd_show_string(160, 140 + cache_count/2 * 20, 240, 16, 16, lcd_buffer_display, display_color);
+                lcd_show_string(160, 150 + cache_count/2 * 20, 240, 16, 16, lcd_buffer_display, display_color);
         }
 #endif
 #ifdef DEBUG_LWIP_DATA

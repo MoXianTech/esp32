@@ -39,23 +39,21 @@ void pwm_set_duty(uint16_t duty)
     ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_PWM_CH0_CHANNEL);    /* 更新占空比 */
 }
 
+void beep_set_freq(uint16_t freq)
+{
+    ledc_set_freq(LEDC_LOW_SPEED_MODE, LEDC_PWM_TIMER, freq);
+}
+
+void beep_trigger(bool value)
+{
+    if (value)
+        pwm_set_duty(512);
+    else
+        pwm_set_duty(0);
+}
 
 void beep_init(void)
 {
-#if 0
-    gpio_config_t gpio_init_struct = {0};
-
-    gpio_init_struct.intr_type = GPIO_INTR_DISABLE;         /* 失能引脚中断 */
-    gpio_init_struct.mode = GPIO_MODE_OUTPUT;         /* 输入输出模式 */
-    gpio_init_struct.pull_up_en = GPIO_PULLUP_DISABLE;       /* 使能上拉 */
-    gpio_init_struct.pull_down_en = GPIO_PULLDOWN_ENABLE;  /* 失能下拉 */
-    gpio_init_struct.pin_bit_mask = 1ull << BEEP_GPIO_PIN;   /* 设置的引脚的位掩码 */
-    gpio_config(&gpio_init_struct);                         /* 配置GPIO */
-
-    gpio_set_level(BEEP_GPIO_PIN, 0);
-#endif
-
-    pwm_init(10,1000);
-    pwm_set_duty(200);
-
+    pwm_init(10,500);
+    pwm_set_duty(0);
 }

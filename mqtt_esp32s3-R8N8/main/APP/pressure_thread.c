@@ -129,6 +129,8 @@ RS2251_USART_NUM_T rs2251_usart_range[PORT_USART_NUM] = {
     USART_NUM_7
 };
 
+#define PRESS_COM_BPS 460800
+
 void pressure_thread(void *pvparams)
 {
     uint8_t *usart1_rx_buffer = pvPortMalloc(UART_CACHE_BUFFER_SIZE);
@@ -140,7 +142,7 @@ void pressure_thread(void *pvparams)
 
     thread_pvparam->queue_pressure = xQueueCreate(1, sizeof(queue_pressure));
 
-    usart_init(460800, SENSOR_INPUT_PORT, GPIO_NUM_6, GPIO_NUM_7);
+    usart_init(PRESS_COM_BPS, SENSOR_INPUT_PORT, GPIO_NUM_6, GPIO_NUM_7);
     rs2251_usart_init();
 
     rs2251_usart_ctrl_channel(USART_NUM_0, false, false);
@@ -173,12 +175,14 @@ void pressure_thread(void *pvparams)
             if (rt_value <= 0)
             {
                 queue_pressure.port_connect_flag &= (~(0x01 << port_count));
+                queue_pressure.pressure_context[port_count].pressure_sum_value = 0x00;
 #ifdef DEBUG_UART_DATA
                 //ESP_LOGI(__FUNCTION__, "pop pressure %d value err! ret = %d\n", port_count, rt_value);
 #endif
             }
         }
 
+        queue_pressure.com_bsp = PRESS_COM_BPS;
         xQueueOverwrite(thread_pvparam->queue_pressure, &queue_pressure);
 
 #ifdef DEBUG_UART_DATA

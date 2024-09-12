@@ -22,6 +22,7 @@ typedef struct {
 typedef struct {
     uint8_t port_connect_flag;
     single_pressure_context_t pressure_context[PORT_USART_NUM];
+    uint32_t com_bsp;
 } queue_pressure_t;
 
 #define thread_malloc pvPortMalloc
@@ -31,6 +32,8 @@ typedef struct {
 typedef struct {
     QueueHandle_t queue_temp_humi;
     QueueHandle_t queue_pressure;
+    QueueHandle_t record_queue;
+    EventGroupHandle_t key_event;
     uint16_t      tags;
 } thread_pvparam_t;
 

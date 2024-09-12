@@ -2,6 +2,7 @@
 #include "temp_humi_thread.h"
 #include "lwip_thread.h"
 #include "pressure_thread.h"
+#include "tip_thread.h"
 
 #define TEMP_HUMI_THREAD_PRIO      2                   /* 任务优先级 */
 #define TEMP_HUMI_THREAD_STK_SIZE  5 * 1024              /* 任务堆栈大小 */
@@ -15,8 +16,12 @@ TaskHandle_t LWIP_THREAD_Handler;  /* 任务句柄 */
 #define PRESSURE_THREAD_STK_SIZE  20 * 1024              /* 任务堆栈大小 */
 TaskHandle_t PRESSURE_THREAD_Handler;  /* 任务句柄 */
 
+#define TIP_THREAD_PRIO      3              /* 任务优先级 */
+#define TIP_THREAD_STK_SIZE  5 * 1024              /* 任务堆栈大小 */
+TaskHandle_t TIP_THREAD_Handler;  /* 任务句柄 */
 
-thread_pvparam_t thread_pvparam = {NULL, NULL, 0xff};
+
+thread_pvparam_t thread_pvparam = {0};
 
 void thraed_work_init(void)
 {
@@ -46,5 +51,14 @@ void thraed_work_init(void)
                             (UBaseType_t)    LWIP_THREAD_PRIO,
                             (TaskHandle_t *) &LWIP_THREAD_Handler,
                             (BaseType_t)     0);
+
+    xTaskCreatePinnedToCore((TaskFunction_t )tip_thread,
+                            (const char *)  "TIP_THREAD",
+                            (uint16_t)       TIP_THREAD_STK_SIZE,
+                            (void *)         &thread_pvparam,
+                            (UBaseType_t)    TIP_THREAD_PRIO,
+                            (TaskHandle_t *) &TIP_THREAD_Handler,
+                            (BaseType_t)     0);
+
 }
 

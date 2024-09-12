@@ -160,8 +160,16 @@ void lwip_thread(void *pvparams)
     wifi_sta_init();
     lwip_init(&mqtt_client_handle, mqtt_json_base);
 
-    while(thread_pvparam->queue_temp_humi == NULL) vTaskDelay(10);
-    while(thread_pvparam->queue_pressure == NULL) vTaskDelay(10);
+    while(thread_pvparam->queue_temp_humi == NULL)
+    {
+        ESP_LOGI(__FUNCTION__, "wait temp queue create");
+        vTaskDelay(10);
+    }
+    while(thread_pvparam->queue_pressure == NULL)
+    {   
+        ESP_LOGI(__FUNCTION__, "wait pressure queue create");
+        vTaskDelay(10);
+    }
 
     mqtt_json_base = cJSON_CreateObject();
     mqtt_json_param = cJSON_CreateObject();

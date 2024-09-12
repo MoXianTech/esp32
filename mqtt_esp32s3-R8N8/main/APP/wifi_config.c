@@ -22,9 +22,9 @@
 
 
 /* 链接wifi名称 */
-#define DEFAULT_SSID        "601_2.4G"
+#define DEFAULT_SSID        "test_wifi_host"
 /* wifi密码 */
-#define DEFAULT_PWD         "12345678"
+#define DEFAULT_PWD         "aaaBB@@13."
 /* 事件标志 */
 static EventGroupHandle_t   wifi_event;
 #define WIFI_CONNECTED_BIT  BIT0

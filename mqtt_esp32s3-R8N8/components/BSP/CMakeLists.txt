@@ -11,7 +11,8 @@ set(src_dirs
             SENSOR
             rs2251_usart
             BEEP
-            SDIO)
+            SDIO
+            KEY)
 
 set(include_dirs
             IIC
@@ -26,7 +27,8 @@ set(include_dirs
             SENSOR
             rs2251_usart
             BEEP
-            SDIO)
+            SDIO
+            KEY)
 
 set(requires
             driver
