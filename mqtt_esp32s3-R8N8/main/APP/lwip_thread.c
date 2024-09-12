@@ -187,12 +187,9 @@ void lwip_thread(void *pvparams)
     cJSON_AddItemToObject(mqtt_json_param, "Humidity", cJSON_CreateNumber(0));
     cJSON_AddItemToObject(mqtt_json_param, "illumination", cJSON_CreateNumber(0));
 
-    
-    cache_buffer[0] = '"';
-    cache_buffer[1] = 0x22;
-    cache_buffer[2] = 0x33;
-    cache_buffer[3] = '"';
-    cJSON_AddItemToObject(mqtt_json_param, "test_bufffer_send", cJSON_CreateRaw(cache_buffer));
+
+
+    //cJSON_AddItemToObject(mqtt_json_param, "test_bufffer_send", cJSON_CreateRaw(cache_buffer));
 
     for(cache_count = 0; cache_count < PORT_USART_NUM; cache_count ++)
     {
