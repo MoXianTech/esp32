@@ -19,14 +19,19 @@ typedef struct {
     uint16_t pressure_min_value;
     uint8_t *pressure_buffer;
     uint16_t pressure_buffer_size;
-    uint16_t pressure_data_size;
 } single_pressure_context_t;
 
 typedef struct {
-    uint8_t port_connect_flag;
-    single_pressure_context_t pressure_context[PORT_USART_NUM];
-    uint32_t com_bsp;
+    uint8_t *raw_data;
+    uint16_t raw_data_size;
+    uint16_t total_buffer_size;
+    uint16_t com_bsp;
 } queue_pressure_t;
+
+typedef struct {
+    uint8_t *json_cmd_buffer;
+    uint16_t json_cmd_buffer_size;
+} queue_json_cmd_t;
 
 #define thread_malloc pvPortMalloc
 #define thread_free vPortFree
@@ -35,7 +40,7 @@ typedef struct {
 typedef struct {
     QueueHandle_t queue_temp_humi;
     QueueHandle_t queue_pressure;
-    QueueHandle_t record_queue;
+    QueueHandle_t queue_json_cmd;
     EventGroupHandle_t key_event;
     EventGroupHandle_t tip_event;
     EventGroupHandle_t pressure_raw_upload_event;

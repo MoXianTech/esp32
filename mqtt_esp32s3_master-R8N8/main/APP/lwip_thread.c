@@ -27,6 +27,9 @@ typedef struct{
     char test_char[32];
     EventGroupHandle_t pressure_raw_upload_event;
     EventGroupHandle_t tip_event;
+    QueueHandle_t queue_pressure;
+    uint8_t *cache_pressure_raw_buffer;
+    uint16_t cache_pressure_raw_buffer_size;
 } mqtt_handle_arg_t;
 
 /**
@@ -94,6 +97,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
     esp_mqtt_client_handle_t client = event->client;
     int msg_id;
     mqtt_handle_arg_t *mqtt_handle_arg = (mqtt_handle_arg_t *)handler_args;
+    queue_pressure_t queue_pressure = {0};
 
     switch ((esp_mqtt_event_id_t)event_id)
     {
@@ -122,19 +126,25 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
             break;
         case MQTT_EVENT_DATA:           /* 接收数据事件 */
             ESP_LOGD(__FUNCTION__, "TOPIC = %.*s\r\n", event->topic_len, event->topic);
-            ESP_LOGI(__FUNCTION__, "DATA = %.*s\r\n", event->data_len, event->data);
+            ESP_LOGD(__FUNCTION__, "DATA = %.*s\r\n", event->data_len, event->data);
 
             uint16_t topic_len = event->topic_len < strlen(DEVICE_CMD_RECEIVE_TOPIC) ? event->topic_len : strlen(DEVICE_CMD_RECEIVE_TOPIC);
             if (!strncmp(event->topic, DEVICE_CMD_RECEIVE_TOPIC, topic_len))
             {
                 mqtt_cmd_parser(mqtt_handle_arg->pressure_raw_upload_event, event->data, event->data_len);
-                xEventGroupSetBits(mqtt_handle_arg->tip_event, TIP_EVENT_BIT_1);
                 ESP_LOGI(__FUNCTION__, "TOPIC = %.*s\r\n", event->topic_len, event->topic);
             }
 
             if (!strncmp(event->topic, DEVICE_BINARY_RECEIVE_TOPIC, topic_len))
             {
-                ESP_LOGI(__FUNCTION__, "TOPIC = %.*s\r\n", event->topic_len, event->topic);
+                ESP_LOGI(__FUNCTION__, "topic %.*s DATA size = %d\r\n",event->topic_len, event->topic, event->data_len);
+                memset(mqtt_handle_arg->cache_pressure_raw_buffer, 0x00, mqtt_handle_arg->cache_pressure_raw_buffer_size);
+                memcpy(mqtt_handle_arg->cache_pressure_raw_buffer, event->data, event->data_len);
+                queue_pressure.raw_data = mqtt_handle_arg->cache_pressure_raw_buffer;
+                queue_pressure.raw_data_size = event->data_len;
+                queue_pressure.total_buffer_size = mqtt_handle_arg->cache_pressure_raw_buffer_size;
+                xQueueOverwrite(mqtt_handle_arg->queue_pressure, &queue_pressure);
+                xEventGroupSetBits(mqtt_handle_arg->tip_event, TIP_EVENT_BIT_2);
             }
 
             break;
@@ -201,13 +211,14 @@ esp_mqtt_client_publish(*mqtt_client_handle, DEVICE_SENSOR_INFO_POS, mqtt_publis
 }
 
 #define PRESSURE_COM_DEF "Pressure_com"
+#define RAW_CACHE_PRESSURE_DATA_SIZE 2560
 
 void lwip_thread(void *pvparams)
 {
     esp_mqtt_client_handle_t mqtt_client_handle;
     thread_pvparam_t *thread_pvparam = (thread_pvparam_t *)pvparams;
     queue_temp_humi_t queue_temp_humi = {0};
-    queue_pressure_t queue_pressure = {0};
+    queue_json_cmd_t queue_json_cmd = {0};
     EventGroupHandle_t wifi_event;
     cJSON *mqtt_json_base = NULL, *mqtt_json_param = NULL;
     char *mqtt_buffer = NULL;
@@ -221,19 +232,25 @@ void lwip_thread(void *pvparams)
     bool temp_flag = false;
     uint8_t upload_flag = 0x00;
     EventBits_t wifi_connect_bits;
-    mqtt_handle_arg_t mqtt_handle_arg = {"mqtt event", NULL};
+    mqtt_handle_arg_t mqtt_handle_arg = {"mqtt event", NULL, NULL};
     EventBits_t pressure_raw_upload_event_bit = 0x00;
+    uint8_t *cache_pressure_raw_buffer = pvPortMalloc(RAW_CACHE_PRESSURE_DATA_SIZE);
 
 
     wifi_sta_init();
 
     while(thread_pvparam->queue_temp_humi == NULL) vTaskDelay(10);
     while(thread_pvparam->queue_pressure == NULL) vTaskDelay(10);
+    while(thread_pvparam->queue_json_cmd == NULL) vTaskDelay(10);
     while(thread_pvparam->tip_event == NULL) vTaskDelay(10);
     while(thread_pvparam->pressure_raw_upload_event == NULL) vTaskDelay(10);
 
     mqtt_handle_arg.pressure_raw_upload_event = thread_pvparam->pressure_raw_upload_event;
+    mqtt_handle_arg.queue_pressure = thread_pvparam->queue_pressure;
+    mqtt_handle_arg.cache_pressure_raw_buffer = cache_pressure_raw_buffer;
+    mqtt_handle_arg.cache_pressure_raw_buffer_size = RAW_CACHE_PRESSURE_DATA_SIZE;
     mqtt_handle_arg.tip_event = thread_pvparam->tip_event;
+
     lwip_init(&mqtt_client_handle, mqtt_json_base, (void *)&mqtt_handle_arg);
     wifi_event = get_wifi_event_handle();
 
@@ -246,7 +263,7 @@ void lwip_thread(void *pvparams)
     cJSON_AddItemToObject(mqtt_json_param, "illumination", cJSON_CreateNumber(0));
 
 
-    //cJSON_AddItemToObject(mqtt_json_param, "test_buffer_send", cJSON_CreateRaw(cache_buffer));
+    //cJSON_AddItemToObject(mqtt_json_param, "test_bufffer_send", cJSON_CreateRaw(cache_buffer));
 
     for(cache_count = 0; cache_count < PORT_USART_NUM; cache_count ++)
     {
@@ -265,72 +282,18 @@ void lwip_thread(void *pvparams)
             upload_flag |= 0x01;
         }
 
-        if (xQueueReceive(thread_pvparam->queue_pressure, &queue_pressure, 0) == pdPASS)
+        if (xQueueReceive(thread_pvparam->queue_json_cmd, &queue_json_cmd, 0) == pdPASS)
         {
-            for(cache_count = 0; cache_count < PORT_USART_NUM; cache_count ++)
-            {
-                if ((queue_pressure.port_connect_flag & (0x01 << cache_count)) == (0x01 << cache_count))
-                {
-                    sprintf(cache_buffer, "%s%u", PRESSURE_COM_DEF, cache_count);
-                    cJSON_ReplaceItemInObject(mqtt_json_param,
-                                              cache_buffer,
-                                              cJSON_CreateNumber(queue_pressure.pressure_context[cache_count].pressure_sum_value));
-                    memset(cache_buffer, 0x00, sizeof(cache_buffer));
-                }
-            }
-            upload_flag |= 0x02;
-
-            pressure_raw_upload_event_bit = xEventGroupWaitBits(thread_pvparam->pressure_raw_upload_event,
-                                                                0xff00,
-                                                                pdTRUE,
-                                                                pdFALSE,
-                                                                0);
-
-            if (pressure_raw_upload_event_bit & 0xff00)
-            {
-                uint8_t count_bit_while = 0x00;
-                do {
-                    if (pressure_raw_upload_event_bit & (0x0001 << (count_bit_while + 8)))
-                    {
-                        break;
-                    }
-                    count_bit_while ++;
-                } while(1);
-
-                xEventGroupSetBits(thread_pvparam->tip_event, TIP_EVENT_BIT_2);
-                ESP_LOGI(__FUNCTION__, "upload bit 0x%lx %d size %d", pressure_raw_upload_event_bit,
-                                                               count_bit_while,
-                                                               queue_pressure.pressure_context[count_bit_while].pressure_data_size);
-                if (!queue_pressure.pressure_context[count_bit_while].pressure_data_size)
-                {
-                    memset(queue_pressure.pressure_context[count_bit_while].pressure_buffer, 0xff, 2);
-                    queue_pressure.pressure_context[count_bit_while].pressure_data_size = 2;
-                }
-                esp_mqtt_client_publish(mqtt_client_handle,
-                        DEVICE_BINARY_SEND_TOPIC,
-                        (char *)queue_pressure.pressure_context[count_bit_while].pressure_buffer,
-                        queue_pressure.pressure_context[count_bit_while].pressure_data_size,
-                        1,
-                        0);
-
-            }
-
+            ESP_LOGI(__FUNCTION__, "%.*s", queue_json_cmd.json_cmd_buffer_size, queue_json_cmd.json_cmd_buffer);
+            xEventGroupSetBits(thread_pvparam->tip_event, TIP_EVENT_BIT_1);
+            esp_mqtt_client_publish(mqtt_client_handle,
+                                    DEVICE_CMD_SEND_TOPIC,
+                                    (char *)queue_json_cmd.json_cmd_buffer,
+                                    queue_json_cmd.json_cmd_buffer_size,
+                                    1,
+                                    0);
         }
 
-
-
-        if (((timer_count % 15) == 0) && (upload_flag && 0x03 == 0x03))
-        {
-            mqtt_buffer = cJSON_Print(mqtt_json_base);
-#ifndef  RECORD_DEVICE_BOARD
-            {
-                esp_mqtt_client_publish(mqtt_client_handle, DEVICE_SENSOR_INFO_POS, mqtt_buffer, strlen(mqtt_buffer), 1, 0);
-            }
-#endif
-            //ESP_LOGI(__FUNCTION__, "%s", mqtt_buffer);
-            cJSON_free(mqtt_buffer);
-            upload_flag = 0x00;
-        }
 
         wifi_connect_bits = xEventGroupWaitBits(wifi_event,
                                                 WIFI_CONNECTED_BIT | WIFI_FAIL_BIT | WIFI_CONNECTING_BIT,
@@ -346,7 +309,7 @@ void lwip_thread(void *pvparams)
         {
             xEventGroupSetBits(thread_pvparam->tip_event, TIP_EVENT_BIT_0);
         }
-        
+
         if (wifi_connect_bits & WIFI_CONNECTED_BIT)
         {
             xEventGroupSetBits(thread_pvparam->tip_event, TIP_EVENT_BIT_4);
@@ -371,6 +334,7 @@ void lwip_thread(void *pvparams)
             xEventGroupClearBits(thread_pvparam->tip_event, TIP_EVENT_BIT_0);
             lcd_show_string(50, 40, 240, 16, 16, "wifi connect success !", BLUE);
         }
+    uint8_t port_connect_flag;
 
         sprintf(lcd_buffer_display, "MQTT %s&%s", PRODUCT_KEY, DEVICE_NAME);
         lcd_show_string(50, 80, 240, 16, 16, lcd_buffer_display, RED);
@@ -385,25 +349,10 @@ void lwip_thread(void *pvparams)
         lcd_show_string(50, 100, 240, 24, 24, lcd_buffer_display, RED);
 
         memset(lcd_buffer_display, 0x00, 64);
-        sprintf(lcd_buffer_display, "com bsp %lu", queue_pressure.com_bsp);
+        sprintf(lcd_buffer_display, "com bsp %u", 460800);
         lcd_show_string(50, 130, 240, 16, 16, lcd_buffer_display, RED);
 
         memset(lcd_buffer_display, 0x00, 64);
-        for(cache_count = 0; cache_count < PORT_USART_NUM; cache_count ++)
-        {
-            if ((queue_pressure.port_connect_flag & (0x01 << cache_count)) == (0x01 << cache_count))
-            {
-                sprintf(lcd_buffer_display, "com_%d %5ld", cache_count, queue_pressure.pressure_context[cache_count].pressure_sum_value);
-                display_color = BLUE;
-            } else {
-                sprintf(lcd_buffer_display, "com_%d NULL!", cache_count);
-                display_color = RED;
-            }
-            if ((cache_count % 2) == 0)
-                lcd_show_string(50, 150 + cache_count/2 * 20, 240, 16, 16, lcd_buffer_display, display_color);
-            else
-                lcd_show_string(160, 150 + cache_count/2 * 20, 240, 16, 16, lcd_buffer_display, display_color);
-        }
 #endif
 #ifdef DEBUG_LWIP_DATA
         ESP_LOGI(__FUNCTION__, "temp %0.1f humi %0.1f Press %ld",
@@ -411,9 +360,9 @@ void lwip_thread(void *pvparams)
                                 queue_temp_humi.humi_value,
                                 queue_pressure.pressure_context[0].pressure_sum_value);
 #endif
-            
+
         timer_count ++;
-        vTaskDelay(100);
+        vTaskDelay(5);
     }
 
     lwip_deinit(&mqtt_client_handle);

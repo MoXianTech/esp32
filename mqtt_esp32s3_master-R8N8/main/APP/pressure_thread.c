@@ -60,6 +60,7 @@ int try_parser_header_form_uart(uart_port_t uart_port)
     return 0;
 }
 
+
 int pressure_parser_form_uart(uint8_t *cmd_buffer,
         size_t buffer_size,
         size_t *cmd_size,
@@ -77,7 +78,7 @@ rework_port_read:
     cmd_header_flag = 0x00;
 
     do {
-        ret = uart_read_bytes(uart_port, cmd_buffer, 1, 20);
+        ret = uart_read_bytes(uart_port, cmd_buffer, 1, 50);
         if (ret < 1)
             return -1;
         if (cmd_buffer[0] == 0xA5)
@@ -129,34 +130,41 @@ RS2251_USART_NUM_T rs2251_usart_range[PORT_USART_NUM] = {
     USART_NUM_7
 };
 
+uint16_t CalChecksum(uint8_t *data, uint16_t len)
+{
+    uint16_t sum = 0;
+    for(int i = 0; i < len; ++i)
+    {
+        sum += data[i];
+    }
+    return sum;
+}
+
 #define PRESS_COM_BPS 460800
 
 void pressure_thread(void *pvparams)
 {
     uint8_t *usart1_rx_buffer = pvPortMalloc(UART_CACHE_BUFFER_SIZE);
+    uint8_t *json_cmd_buffer = pvPortMalloc(UART_CACHE_BUFFER_SIZE);
+    uint8_t *cache_tx_buffer = pvPortMalloc(UART_CACHE_BUFFER_SIZE);
+    uint16_t cache_tx_buffer_size = UART_CACHE_BUFFER_SIZE;
+    uint16_t cache_tx_data_size = 8;
+    uint16_t check_sum_value = 0;
+
+    memset(cache_tx_buffer, 0x00, UART_CACHE_BUFFER_SIZE);
     thread_pvparam_t *thread_pvparam = (thread_pvparam_t *)pvparams;
     queue_pressure_t queue_pressure = {0};
+    queue_json_cmd_t queue_json_cmd = {0};
+
     int rt_value = 0x00;
     uint8_t port_count = 0;
-    uint8_t count = 0;
     size_t rx_buffer_size = 0x00;
     EventBits_t pressure_raw_upload_event_bit = 0x00;
+    size_t cache_size = 0x00, last_cache_size = 0x00;
+    uint64_t thread_time_count = 0;
 
     thread_pvparam->queue_pressure = xQueueCreate(1, sizeof(queue_pressure_t));
-
-    for (count = 0; count <= (USART_NUM_7 - USART_NUM_0); count ++)
-    {
-        queue_pressure.pressure_context[count].pressure_buffer = pvPortMalloc(UART_CACHE_BUFFER_SIZE);
-        if (queue_pressure.pressure_context[count].pressure_buffer)
-        {
-            ESP_LOGI(__FUNCTION__, "malloc buffer %p count %d", queue_pressure.pressure_context[count].pressure_buffer, count);
-            queue_pressure.pressure_context[count].pressure_data_size = UART_CACHE_BUFFER_SIZE;
-        } else {
-            queue_pressure.pressure_context[count].pressure_data_size = 0;
-            ESP_LOGI(__FUNCTION__, "malloc buffer err! count %d", count);
-        }
-    }
-
+    thread_pvparam->queue_json_cmd = xQueueCreate(1, sizeof(queue_json_cmd_t));
     thread_pvparam->pressure_raw_upload_event = xEventGroupCreate();
 
     usart_init(PRESS_COM_BPS, SENSOR_INPUT_PORT, GPIO_NUM_6, GPIO_NUM_7);
@@ -171,75 +179,61 @@ void pressure_thread(void *pvparams)
     rs2251_usart_ctrl_channel(USART_NUM_6, false, false);
     rs2251_usart_ctrl_channel(USART_NUM_7, false, false);
 
+    rs2251_usart_ctrl_channel(USART_NUM_0, true, true);
+
     while(1)
     {
-        
 
-        for (port_count = 0; port_count < PORT_USART_NUM; port_count ++)
+        if (xQueueReceive(thread_pvparam->queue_pressure, &queue_pressure, 0) == pdPASS)
         {
-            pressure_raw_upload_event_bit = xEventGroupWaitBits(thread_pvparam->pressure_raw_upload_event,
-                    0xff,
-                    pdTRUE,
-                    pdFALSE,
-                    0);
-
-            if (pressure_raw_upload_event_bit & 0xff)
+            ESP_LOGI(__FUNCTION__, "get pressure raw data size %d", queue_pressure.raw_data_size);
+            if (queue_pressure.raw_data_size == 2)
             {
-                xEventGroupSetBits(thread_pvparam->pressure_raw_upload_event, (pressure_raw_upload_event_bit & 0xff) << 8);
-                ESP_LOGI(__FUNCTION__, "receive com upload 0x%lx", (uint32_t)pressure_raw_upload_event_bit - 1);
-                xQueueOverwrite(thread_pvparam->queue_pressure, &queue_pressure);
+                memset(cache_tx_buffer + 6, 0xff, cache_tx_data_size - 8);
+                check_sum_value = CalChecksum(cache_tx_buffer, cache_tx_data_size - 2);
+                cache_tx_buffer[cache_tx_data_size - 2] = check_sum_value & 0xff;
+                cache_tx_buffer[cache_tx_data_size - 1] = (check_sum_value >> 8) & 0xff;
+            } else {
+                cache_tx_data_size = queue_pressure.raw_data_size;
+                memcpy(cache_tx_buffer, queue_pressure.raw_data, cache_tx_data_size);
             }
+        }
 
-            rs2251_usart_ctrl_channel(rs2251_usart_range[port_count], true, true);
-            vTaskDelay(5);
+
+        if (queue_pressure.raw_data_size && (thread_time_count % 5 == 0))
+            uart_write_bytes(SENSOR_INPUT_PORT, cache_tx_buffer, cache_tx_data_size);
+
+        {
+            uart_get_buffered_data_len(SENSOR_INPUT_PORT, &cache_size);
+            if ((cache_size != 0) && (last_cache_size == cache_size))
+            {
+                uart_read_bytes(SENSOR_INPUT_PORT, usart1_rx_buffer, cache_size, 10);
+                ESP_LOGI(__FUNCTION__, "rx cache buffer size %d", cache_size);
+                ESP_LOGI(__FUNCTION__, "%.*s", cache_size, usart1_rx_buffer);
+                memcpy(json_cmd_buffer, usart1_rx_buffer, cache_size);
+                queue_json_cmd.json_cmd_buffer = json_cmd_buffer;
+                queue_json_cmd.json_cmd_buffer_size = cache_size;
+                xQueueOverwrite(thread_pvparam->queue_json_cmd, &queue_json_cmd);
+            }
+            last_cache_size = cache_size;
+        }
+
+        if (0)
+        {
             uart_flush(SENSOR_INPUT_PORT);
             rt_value = pressure_parser_form_uart(usart1_rx_buffer,
-                    UART_CACHE_BUFFER_SIZE,
-                    &rx_buffer_size,
-                    SENSOR_INPUT_PORT);
+                                                 UART_CACHE_BUFFER_SIZE,
+                                                 &rx_buffer_size,
+                                                 SENSOR_INPUT_PORT);
             if (rt_value > 0)
             {
-                queue_pressure.port_connect_flag |= (0x01 << port_count);
-                queue_pressure.pressure_context[port_count].pressure_sum_value =
-                    get_pressure_sum_value(usart1_rx_buffer, rx_buffer_size);
 
-                if (queue_pressure.pressure_context[port_count].pressure_buffer)
-                {
-                    memcpy(queue_pressure.pressure_context[port_count].pressure_buffer, usart1_rx_buffer, rx_buffer_size);
-                    queue_pressure.pressure_context[port_count].pressure_data_size = rx_buffer_size;
-                } else {
-                    queue_pressure.pressure_context[port_count].pressure_data_size = 0x00;
-                }
-            }
-
-            if (rt_value <= 0)
-            {
-                queue_pressure.port_connect_flag &= (~(0x01 << port_count));
-                queue_pressure.pressure_context[port_count].pressure_sum_value = 0x00;
-                queue_pressure.pressure_context[port_count].pressure_data_size = 0x00;
-                memset(queue_pressure.pressure_context[port_count].pressure_buffer,
-                       0x00,
-                       queue_pressure.pressure_context[port_count].pressure_buffer_size);
-#ifdef DEBUG_UART_DATA
-                //ESP_LOGI(__FUNCTION__, "pop pressure %d value err! ret = %d\n", port_count, rt_value);
-#endif
+            } else {
+                ESP_LOGI(__FUNCTION__, "pop pressure %d value err! ret = %d\n", port_count, rt_value);
             }
         }
 
-        queue_pressure.com_bsp = PRESS_COM_BPS;
-        xQueueOverwrite(thread_pvparam->queue_pressure, &queue_pressure);
-
-#ifdef DEBUG_UART_DATA
-        for (port_count = 0; port_count < PORT_USART_NUM; port_count ++)
-        {
-            if ((queue_pressure.port_connect_flag & (0x01 << port_count)) == (0x01 << port_count))
-            {
-                ESP_LOGI(__FUNCTION__, "pressure_num %d value %ld",
-                        port_count,
-                        queue_pressure.pressure_context[port_count].pressure_sum_value
-                        );
-            }
-        }
-#endif
+        thread_time_count ++;
+        vTaskDelay(5);
     }
 }

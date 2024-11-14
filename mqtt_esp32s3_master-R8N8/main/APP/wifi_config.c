@@ -20,7 +20,7 @@
 
 #include "wifi_config.h"
 
-#define WIFI_MATRIX_104
+#define WIFI_TEST_HOST
 
 #ifdef WIFI_TEST_HOST
 /* 链接wifi名称 */
