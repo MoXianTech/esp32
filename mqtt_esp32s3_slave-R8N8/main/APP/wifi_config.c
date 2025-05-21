@@ -20,7 +20,15 @@
 
 #include "wifi_config.h"
 
-#define WIFI_MATRIX_104
+#define WIFI_MOXIAN_1234
+
+#ifdef WIFI_OUTSIDE_AP
+/* 链接wifi名称 */
+#define DEFAULT_SSID        "moxian_ceshi"
+/* wifi密码 */
+#define DEFAULT_PWD         "weizihan"
+
+#endif
 
 #ifdef WIFI_TEST_HOST
 /* 链接wifi名称 */
@@ -42,6 +50,14 @@
 /* wifi密码 */
 #define DEFAULT_PWD         "12345678"
 #endif
+
+#ifdef WIFI_MOXIAN_1234
+/* 链接wifi名称 */
+#define DEFAULT_SSID        "moxian123"
+/* wifi密码 */
+#define DEFAULT_PWD         "12345678"
+#endif
+
 
 EventGroupHandle_t wifi_event;
 

@@ -4,7 +4,7 @@
 #include "rs2251_usart.h"
 
 #define UART_CACHE_BUFFER_SIZE 4096
-//#define DEBUG_UART_DATA
+#define DEBUG_UART_DATA
 
 uint16_t cal_check_sum(uint8_t *data, uint16_t len)
 {
@@ -130,6 +130,7 @@ RS2251_USART_NUM_T rs2251_usart_range[PORT_USART_NUM] = {
 };
 
 #define PRESS_COM_BPS 460800
+//#define PRESS_COM_BPS 115200
 
 void pressure_thread(void *pvparams)
 {
@@ -173,7 +174,7 @@ void pressure_thread(void *pvparams)
 
     while(1)
     {
-        
+
 
         for (port_count = 0; port_count < PORT_USART_NUM; port_count ++)
         {
@@ -191,7 +192,7 @@ void pressure_thread(void *pvparams)
             }
 
             rs2251_usart_ctrl_channel(rs2251_usart_range[port_count], true, true);
-            vTaskDelay(5);
+            vTaskDelay(50);
             uart_flush(SENSOR_INPUT_PORT);
             rt_value = pressure_parser_form_uart(usart1_rx_buffer,
                     UART_CACHE_BUFFER_SIZE,

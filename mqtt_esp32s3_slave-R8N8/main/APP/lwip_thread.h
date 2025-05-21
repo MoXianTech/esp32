@@ -2,7 +2,7 @@
 #define __LWIP_THREAD_H__
 
 //#define RECORD_DEVICE_BOARD
-#define TEST_4_BOARD
+#define TEST_12_BOARD
 
 
 #ifdef TEST_1_BOARD
@@ -117,6 +117,53 @@
 #define DEVICE_SENSOR_INFO_POS    "/sys/"PRODUCT_KEY"/"DEVICE_NAME"/thing/event/property/post"
 #endif
 
+#ifdef TEST_6_BOARD
+
+/* 用户需要根据设备信息完善以下宏定义中的三元组内容 */
+#define PRODUCT_KEY         "i98lEHgwEA1"                                                       /* ProductKey->阿里云颁发的产品唯一标识，11位长度的英文数字随机组合 */
+#define DEVICE_NAME         "test_6"                                                       /* DeviceName->用户注册设备时生成的设备唯一编号，支持系统自动生成，也可支持用户添加自定义编号，产品维度内唯一  */
+#define DEVICE_SECRET       "6d30005163891ca9e1a081ff5fd3348e"                                  /* DeviceSecret->设备密钥，与DeviceName成对出现，可用于一机一密的认证方案  */
+/* MQTT地址与端口 */
+#define HOST_NAME           "iot-06z00ho0nths9re.mqtt.iothub.aliyuncs.com"                  /* 阿里云域名 */
+#define HOST_PORT           1883                                                                /* 阿里云域名端口，固定1883 */
+
+#define CLIENT_ID_CONNECT_PARAM "|securemode=2,signmethod=hmacsha256,timestamp=1733213914789|"
+
+/* 根据三元组内容计算得出的数值 */
+#define CLIENT_ID           PRODUCT_KEY"."DEVICE_NAME""CLIENT_ID_CONNECT_PARAM  /* 客户端ID */
+#define USER_NAME           DEVICE_NAME"&"PRODUCT_KEY                                           /* 客户端用户名 */
+#define PASSWORD            "62c44720cf5ccf89291d8723361857ae956b391ac8108cf3fc8cb561c0e162e7"                          /* 由MQTT_Password工具计算得出的连接密码 */
+/* 发布与订阅 */
+#define DEVICE_PUBLISH      "/"PRODUCT_KEY"/"DEVICE_NAME"/user/update"                          /* 发布 */
+#define DEVICE_SUBSCRIBE    "/"PRODUCT_KEY"/"DEVICE_NAME"/user/get"                             /* 订阅 */
+
+#define DEVICE_SENSOR_INFO_POS    "/sys/"PRODUCT_KEY"/"DEVICE_NAME"/thing/event/property/post"
+#endif
+
+#ifdef TEST_7_BOARD
+
+/* 用户需要根据设备信息完善以下宏定义中的三元组内容 */
+#define PRODUCT_KEY         "i98lEHgwEA1"                                                       /* ProductKey->阿里云颁发的产品唯一标识，11位长度的英文数字随机组合 */
+#define DEVICE_NAME         "test_7"                                                       /* DeviceName->用户注册设备时生成的设备唯一编号，支持系统自动生成，也可支持用户添加自定义编号，产品维度内唯一  */
+#define DEVICE_SECRET       "6f6cf9568019e34d9cd411688dc5a8ec"                                  /* DeviceSecret->设备密钥，与DeviceName成对出现，可用于一机一密的认证方案  */
+/* MQTT地址与端口 */
+#define HOST_NAME           "iot-06z00ho0nths9re.mqtt.iothub.aliyuncs.com"                  /* 阿里云域名 */
+#define HOST_PORT           1883                                                                /* 阿里云域名端口，固定1883 */
+
+#define CLIENT_ID_CONNECT_PARAM "|securemode=2,signmethod=hmacsha256,timestamp=1733452255802|"
+
+/* 根据三元组内容计算得出的数值 */
+#define CLIENT_ID           PRODUCT_KEY"."DEVICE_NAME""CLIENT_ID_CONNECT_PARAM  /* 客户端ID */
+#define USER_NAME           DEVICE_NAME"&"PRODUCT_KEY                                           /* 客户端用户名 */
+#define PASSWORD            "c5eee3dd58ce0f8c60bbe74a849b8e4b995f19b233a2841788bb2c8e0122e41a"                          /* 由MQTT_Password工具计算得出的连接密码 */
+/* 发布与订阅 */
+#define DEVICE_PUBLISH      "/"PRODUCT_KEY"/"DEVICE_NAME"/user/update"                          /* 发布 */
+#define DEVICE_SUBSCRIBE    "/"PRODUCT_KEY"/"DEVICE_NAME"/user/get"                             /* 订阅 */
+
+#define DEVICE_SENSOR_INFO_POS    "/sys/"PRODUCT_KEY"/"DEVICE_NAME"/thing/event/property/post"
+#endif
+
+
 
 #ifdef TEST_JUST_BOARD
 
@@ -188,6 +235,123 @@
 #define DEVICE_SENSOR_INFO_POS    "/sys/"PRODUCT_KEY"/"DEVICE_NAME"/thing/event/property/post"
 
 #endif
+
+#ifdef TEST_8_BOARD
+
+/* 用户需要根据设备信息完善以下宏定义中的三元组内容 */
+#define PRODUCT_KEY         "i98lEHgwEA1"                                                       /* ProductKey->阿里云颁发的产品唯一标识，11位长度的英文数字随机组合 */
+#define DEVICE_NAME         "test_8"                                                       /* DeviceName->用户注册设备时生成的设备唯一编号，支持系统自动生成，也可支持用户添加自定义编号，产品维度内唯一  */
+#define DEVICE_SECRET       "78466810bb8fe292c0826adcbed4b276"                                  /* DeviceSecret->设备密钥，与DeviceName成对出现，可用于一机一密的认证方案  */
+/* MQTT地址与端口 */
+#define HOST_NAME           "iot-06z00ho0nths9re.mqtt.iothub.aliyuncs.com"                  /* 阿里云域名 */
+#define HOST_PORT           1883                                                                /* 阿里云域名端口，固定1883 */
+
+#define CLIENT_ID_CONNECT_PARAM "|securemode=2,signmethod=hmacsha256,timestamp=1735897712995|"
+
+/* 根据三元组内容计算得出的数值 */
+#define CLIENT_ID           PRODUCT_KEY"."DEVICE_NAME""CLIENT_ID_CONNECT_PARAM  /* 客户端ID */
+#define USER_NAME           DEVICE_NAME"&"PRODUCT_KEY                                           /* 客户端用户名 */
+#define PASSWORD            "1413e167a2070df1138f407816e995da9917dbe509bf556a13feb243ea0ebd59"                          /* 由MQTT_Password工具计算得出的连接密码 */
+/* 发布与订阅 */
+#define DEVICE_PUBLISH      "/"PRODUCT_KEY"/"DEVICE_NAME"/user/update"                          /* 发布 */
+#define DEVICE_SUBSCRIBE    "/"PRODUCT_KEY"/"DEVICE_NAME"/user/get"                             /* 订阅 */
+
+#define DEVICE_SENSOR_INFO_POS    "/sys/"PRODUCT_KEY"/"DEVICE_NAME"/thing/event/property/post"
+#endif
+
+#ifdef TEST_9_BOARD
+
+/* 用户需要根据设备信息完善以下宏定义中的三元组内容 */
+#define PRODUCT_KEY         "i98lEHgwEA1"                                                       /* ProductKey->阿里云颁发的产品唯一标识，11位长度的英文数字随机组合 */
+#define DEVICE_NAME         "test_9"                                                       /* DeviceName->用户注册设备时生成的设备唯一编号，支持系统自动生成，也可支持用户添加自定义编号，产品维度内唯一  */
+#define DEVICE_SECRET       "3927f2863432a1cde557f58652777b5a"                                  /* DeviceSecret->设备密钥，与DeviceName成对出现，可用于一机一密的认证方案  */
+/* MQTT地址与端口 */
+#define HOST_NAME           "iot-06z00ho0nths9re.mqtt.iothub.aliyuncs.com"                  /* 阿里云域名 */
+#define HOST_PORT           1883                                                                /* 阿里云域名端口，固定1883 */
+
+#define CLIENT_ID_CONNECT_PARAM "|securemode=2,signmethod=hmacsha256,timestamp=1739003699098|"
+
+/* 根据三元组内容计算得出的数值 */
+#define CLIENT_ID           PRODUCT_KEY"."DEVICE_NAME""CLIENT_ID_CONNECT_PARAM  /* 客户端ID */
+#define USER_NAME           DEVICE_NAME"&"PRODUCT_KEY                                           /* 客户端用户名 */
+#define PASSWORD            "fad2644cf4c8973250de3237478648c4ad8a01bf9a83e50eec2754e26bcda729"                          /* 由MQTT_Password工具计算得出的连接密码 */
+/* 发布与订阅 */
+#define DEVICE_PUBLISH      "/"PRODUCT_KEY"/"DEVICE_NAME"/user/update"                          /* 发布 */
+#define DEVICE_SUBSCRIBE    "/"PRODUCT_KEY"/"DEVICE_NAME"/user/get"                             /* 订阅 */
+
+#define DEVICE_SENSOR_INFO_POS    "/sys/"PRODUCT_KEY"/"DEVICE_NAME"/thing/event/property/post"
+#endif
+
+
+#ifdef TEST_10_BOARD
+
+/* 用户需要根据设备信息完善以下宏定义中的三元组内容 */
+#define PRODUCT_KEY         "i98lEHgwEA1"                                                       /* ProductKey->阿里云颁发的产品唯一标识，11位长度的英文数字随机组合 */
+#define DEVICE_NAME         "test_10"                                                       /* DeviceName->用户注册设备时生成的设备唯一编号，支持系统自动生成，也可支持用户添加自定义编号，产品维度内唯一  */
+#define DEVICE_SECRET       "7405ccd3b32cee54e527a005e73d241a"                                  /* DeviceSecret->设备密钥，与DeviceName成对出现，可用于一机一密的认证方案  */
+/* MQTT地址与端口 */
+#define HOST_NAME           "iot-06z00ho0nths9re.mqtt.iothub.aliyuncs.com"                  /* 阿里云域名 */
+#define HOST_PORT           1883                                                                /* 阿里云域名端口，固定1883 */
+
+#define CLIENT_ID_CONNECT_PARAM "|securemode=2,signmethod=hmacsha256,timestamp=1746607257477|"
+
+/* 根据三元组内容计算得出的数值 */
+#define CLIENT_ID           PRODUCT_KEY"."DEVICE_NAME""CLIENT_ID_CONNECT_PARAM  /* 客户端ID */
+#define USER_NAME           DEVICE_NAME"&"PRODUCT_KEY                                           /* 客户端用户名 */
+#define PASSWORD            "37e88ea9beb355b04549345958b05166501fc0814c30841b6c9f4687702f1c70"                          /* 由MQTT_Password工具计算得出的连接密码 */
+/* 发布与订阅 */
+#define DEVICE_PUBLISH      "/"PRODUCT_KEY"/"DEVICE_NAME"/user/update"                          /* 发布 */
+#define DEVICE_SUBSCRIBE    "/"PRODUCT_KEY"/"DEVICE_NAME"/user/get"                             /* 订阅 */
+
+#define DEVICE_SENSOR_INFO_POS    "/sys/"PRODUCT_KEY"/"DEVICE_NAME"/thing/event/property/post"
+#endif
+
+#ifdef TEST_11_BOARD
+
+/* 用户需要根据设备信息完善以下宏定义中的三元组内容 */
+#define PRODUCT_KEY         "i98lEHgwEA1"                                                       /* ProductKey->阿里云颁发的产品唯一标识，11位长度的英文数字随机组合 */
+#define DEVICE_NAME         "test_11"                                                       /* DeviceName->用户注册设备时生成的设备唯一编号，支持系统自动生成，也可支持用户添加自定义编号，产品维度内唯一  */
+#define DEVICE_SECRET       "fc8405fe174e4bcdbe93a5699c42706e"                                  /* DeviceSecret->设备密钥，与DeviceName成对出现，可用于一机一密的认证方案  */
+/* MQTT地址与端口 */
+#define HOST_NAME           "iot-06z00ho0nths9re.mqtt.iothub.aliyuncs.com"                  /* 阿里云域名 */
+#define HOST_PORT           1883                                                                /* 阿里云域名端口，固定1883 */
+
+#define CLIENT_ID_CONNECT_PARAM "|securemode=2,signmethod=hmacsha256,timestamp=1747313856001|"
+
+/* 根据三元组内容计算得出的数值 */
+#define CLIENT_ID           PRODUCT_KEY"."DEVICE_NAME""CLIENT_ID_CONNECT_PARAM  /* 客户端ID */
+#define USER_NAME           DEVICE_NAME"&"PRODUCT_KEY                                           /* 客户端用户名 */
+#define PASSWORD            "af3799f79b8e9e493ef8025ab6d04254711f207b46ea7b104af44e9a321c421d"                          /* 由MQTT_Password工具计算得出的连接密码 */
+/* 发布与订阅 */
+#define DEVICE_PUBLISH      "/"PRODUCT_KEY"/"DEVICE_NAME"/user/update"                          /* 发布 */
+#define DEVICE_SUBSCRIBE    "/"PRODUCT_KEY"/"DEVICE_NAME"/user/get"                             /* 订阅 */
+
+#define DEVICE_SENSOR_INFO_POS    "/sys/"PRODUCT_KEY"/"DEVICE_NAME"/thing/event/property/post"
+#endif
+
+#ifdef TEST_12_BOARD
+
+/* 用户需要根据设备信息完善以下宏定义中的三元组内容 */
+#define PRODUCT_KEY         "i98lEHgwEA1"                                                       /* ProductKey->阿里云颁发的产品唯一标识，11位长度的英文数字随机组合 */
+#define DEVICE_NAME         "test_12"                                                       /* DeviceName->用户注册设备时生成的设备唯一编号，支持系统自动生成，也可支持用户添加自定义编号，产品维度内唯一  */
+#define DEVICE_SECRET       "b00b83c0e908853da0ab0f2b982ec000"                                  /* DeviceSecret->设备密钥，与DeviceName成对出现，可用于一机一密的认证方案  */
+/* MQTT地址与端口 */
+#define HOST_NAME           "iot-06z00ho0nths9re.mqtt.iothub.aliyuncs.com"                  /* 阿里云域名 */
+#define HOST_PORT           1883                                                                /* 阿里云域名端口，固定1883 */
+
+#define CLIENT_ID_CONNECT_PARAM "|securemode=2,signmethod=hmacsha256,timestamp=1747314042065|"
+
+/* 根据三元组内容计算得出的数值 */
+#define CLIENT_ID           PRODUCT_KEY"."DEVICE_NAME""CLIENT_ID_CONNECT_PARAM  /* 客户端ID */
+#define USER_NAME           DEVICE_NAME"&"PRODUCT_KEY                                           /* 客户端用户名 */
+#define PASSWORD            "bb15baa60bca488cc4c2e085f373f3beb8712c9473a53a7cd0d1d3362b291c70"                          /* 由MQTT_Password工具计算得出的连接密码 */
+/* 发布与订阅 */
+#define DEVICE_PUBLISH      "/"PRODUCT_KEY"/"DEVICE_NAME"/user/update"                          /* 发布 */
+#define DEVICE_SUBSCRIBE    "/"PRODUCT_KEY"/"DEVICE_NAME"/user/get"                             /* 订阅 */
+
+#define DEVICE_SENSOR_INFO_POS    "/sys/"PRODUCT_KEY"/"DEVICE_NAME"/thing/event/property/post"
+#endif
+
 
 /* 二进制透传发送 topic */
 #define DEVICE_BINARY_SEND_TOPIC  "/"PRODUCT_KEY"/"DEVICE_NAME"/user/binary_send" 

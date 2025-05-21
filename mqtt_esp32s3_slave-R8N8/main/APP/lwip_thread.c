@@ -346,7 +346,7 @@ void lwip_thread(void *pvparams)
         {
             xEventGroupSetBits(thread_pvparam->tip_event, TIP_EVENT_BIT_0);
         }
-        
+
         if (wifi_connect_bits & WIFI_CONNECTED_BIT)
         {
             xEventGroupSetBits(thread_pvparam->tip_event, TIP_EVENT_BIT_4);
@@ -411,7 +411,7 @@ void lwip_thread(void *pvparams)
                                 queue_temp_humi.humi_value,
                                 queue_pressure.pressure_context[0].pressure_sum_value);
 #endif
-            
+
         timer_count ++;
         vTaskDelay(100);
     }

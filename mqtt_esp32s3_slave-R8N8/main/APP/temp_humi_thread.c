@@ -20,7 +20,7 @@ void temp_humi_thread(void *pvparams)
         queue_temp_humi.temp_value = temp / 10.0;
         queue_temp_humi.humi_value = humi / 10.0;
 
-        if (queue_temp_humi.temp_value > 50) queue_temp_humi.temp_value = 0;
+        if (queue_temp_humi.temp_value > 90) queue_temp_humi.temp_value = 90;
         if (queue_temp_humi.humi_value > 100) queue_temp_humi.humi_value = 0;
 
         xQueueSend(thread_pvparam->queue_temp_humi, &queue_temp_humi, 100);
@@ -28,6 +28,6 @@ void temp_humi_thread(void *pvparams)
         if (0)
             ESP_LOGI(__FUNCTION__, "temp %0.1f, humi %0.1f tags 0x%X",
                     temp / 10.0, humi / 10.0, thread_pvparam->tags);
-        vTaskDelay(300);
+        vTaskDelay(100);
     }
 }
