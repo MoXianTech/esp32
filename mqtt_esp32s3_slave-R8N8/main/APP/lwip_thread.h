@@ -2,7 +2,7 @@
 #define __LWIP_THREAD_H__
 
 //#define RECORD_DEVICE_BOARD
-#define TEST_12_BOARD
+#define TEST_11_BOARD
 
 
 #ifdef TEST_1_BOARD

@@ -20,7 +20,7 @@
 
 #include "wifi_config.h"
 
-#define WIFI_MOXIAN_1234
+#define WIFI_MATRIX_104
 
 #ifdef WIFI_OUTSIDE_AP
 /* 链接wifi名称 */
