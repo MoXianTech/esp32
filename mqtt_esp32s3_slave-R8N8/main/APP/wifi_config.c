@@ -20,7 +20,7 @@
 
 #include "wifi_config.h"
 
-#define WIFI_MATRIX_104
+#define WIFI_TESTSYSTEM_24
 
 #ifdef WIFI_OUTSIDE_AP
 /* 链接wifi名称 */
@@ -46,7 +46,7 @@
 
 #ifdef WIFI_MATRIX_104
 /* 链接wifi名称 */
-#define DEFAULT_SSID        "Matrix-104"
+#define DEFAULT_SSID        "Matrix104"
 /* wifi密码 */
 #define DEFAULT_PWD         "12345678"
 #endif
@@ -56,6 +56,13 @@
 #define DEFAULT_SSID        "moxian123"
 /* wifi密码 */
 #define DEFAULT_PWD         "12345678"
+#endif
+
+#ifdef WIFI_TESTSYSTEM_24
+/* 链接wifi名称 */
+#define DEFAULT_SSID        "testsystem24"
+/* wifi密码 */
+#define DEFAULT_PWD         "weizihan"
 #endif
 
 
@@ -99,10 +106,16 @@ void connet_display(uint8_t flag)
         }
         else if ((flag & 0x02) == 0x02)
         {
-            lcd_show_string(50, 40, 240, 16, 16, "wifi connecting fail", BLUE);
             sprintf(lcd_buff, "wifi connect err !!!!!!!!!");
             lcd_show_string(50, 0, 240, 16, 16, lcd_buff, BLUE);
             lcd_show_string(50, 20, 240, 16, 16, lcd_buff, BLUE);
+            lcd_show_string(50, 40, 240, 16, 16, "wifi connecting fail", BLUE);
+            sprintf(lcd_buff, "wifi info:");
+            lcd_show_string(50, 60, 240, 32, 32, lcd_buff, BLUE);
+            sprintf(lcd_buff, DEFAULT_SSID);
+            lcd_show_string(50, 100, 240, 32, 32, lcd_buff, BLUE);
+            sprintf(lcd_buff, DEFAULT_PWD);
+            lcd_show_string(50, 140, 240, 32, 32, lcd_buff, BLUE);
         }
         else if ((flag & 0x01) == 0x01)
         {
