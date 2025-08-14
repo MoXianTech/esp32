@@ -38,7 +38,9 @@ typedef struct {
     QueueHandle_t record_queue;
     EventGroupHandle_t key_event;
     EventGroupHandle_t tip_event;
+    EventGroupHandle_t display_event;
     EventGroupHandle_t pressure_raw_upload_event;
+    EventGroupHandle_t usart_parser_cmd_type_event;
     uint16_t      tags;
 } thread_pvparam_t;
 
@@ -61,5 +63,11 @@ void thraed_work_init(void);
 #define EVENT_UPLOAD_PRESSURE_RAW_COM_5 BIT13
 #define EVENT_UPLOAD_PRESSURE_RAW_COM_6 BIT14
 #define EVENT_UPLOAD_PRESSURE_RAW_COM_7 BIT15
+
+#define DISPLAY_USART_PROTOCOL_AI_DREAM BIT0
+#define DISPLAY_USART_PROTOCOL_NORMOL BIT1
+
+#define PARSER_USART_PROTOCOL_AI_DREAM BIT0
+#define PARSER_USART_PROTOCOL_NORMAL BIT1
 
 #endif

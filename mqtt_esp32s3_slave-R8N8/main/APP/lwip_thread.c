@@ -215,14 +215,16 @@ void lwip_thread(void *pvparams)
     uint8_t cache_count = 0;
     uint64_t timer_count = 0;
     uint32_t display_color = 0;
+    uint64_t event_bit = 0x00;
 #ifdef ENABLE_LCD
-    char lcd_buffer_display[64] = {0};
+    char lcd_buffer_display[128] = {0};
 #endif
     bool temp_flag = false;
     uint8_t upload_flag = 0x00;
     EventBits_t wifi_connect_bits;
     mqtt_handle_arg_t mqtt_handle_arg = {"mqtt event", NULL};
     EventBits_t pressure_raw_upload_event_bit = 0x00;
+    thread_pvparam->display_event = xEventGroupCreate();
 
 
     wifi_sta_init();
@@ -327,7 +329,7 @@ void lwip_thread(void *pvparams)
                 esp_mqtt_client_publish(mqtt_client_handle, DEVICE_SENSOR_INFO_POS, mqtt_buffer, strlen(mqtt_buffer), 1, 0);
             }
 #endif
-            //ESP_LOGI(__FUNCTION__, "%s", mqtt_buffer);
+            ESP_LOGI(__FUNCTION__, "%s", mqtt_buffer);
             cJSON_free(mqtt_buffer);
             upload_flag = 0x00;
         }
@@ -384,11 +386,37 @@ void lwip_thread(void *pvparams)
 
         lcd_show_string(50, 100, 240, 24, 24, lcd_buffer_display, RED);
 
-        memset(lcd_buffer_display, 0x00, 64);
-        sprintf(lcd_buffer_display, "com bsp %lu", queue_pressure.com_bsp);
+        memset(lcd_buffer_display, 0x00, 128);
+
+        event_bit = xEventGroupWaitBits(thread_pvparam->display_event,
+                                        DISPLAY_USART_PROTOCOL_AI_DREAM | DISPLAY_USART_PROTOCOL_NORMOL,
+                                        pdTRUE,
+                                        pdFAIL,
+                                        0);
+
+        sprintf(lcd_buffer_display, "bsp %lu", queue_pressure.com_bsp);
         lcd_show_string(50, 130, 240, 16, 16, lcd_buffer_display, RED);
 
-        memset(lcd_buffer_display, 0x00, 64);
+        memset(lcd_buffer_display, 0x00, 128);
+        switch (event_bit)
+        {
+            case DISPLAY_USART_PROTOCOL_AI_DREAM:
+                lcd_fill(160, 130, 320, 130+16, WHITE);
+                sprintf(lcd_buffer_display, "prot %s", "AI_DREAM");
+                ESP_LOGI(__FUNCTION__,"change to AI_DREAM");
+                break;
+            case DISPLAY_USART_PROTOCOL_NORMOL:
+                lcd_fill(160, 130, 320, 130+16, WHITE);
+                sprintf(lcd_buffer_display, "prot %s", "NORMAL");
+                ESP_LOGI(__FUNCTION__,"change to NORMAL");
+                break;
+            default:
+                break;
+        }
+
+        lcd_show_string(160, 130, 240, 16, 16, lcd_buffer_display, RED);
+
+        memset(lcd_buffer_display, 0x00, 128);
         for(cache_count = 0; cache_count < PORT_USART_NUM; cache_count ++)
         {
             if ((queue_pressure.port_connect_flag & (0x01 << cache_count)) == (0x01 << cache_count))

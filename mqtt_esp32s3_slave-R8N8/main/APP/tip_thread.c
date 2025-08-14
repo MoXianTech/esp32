@@ -20,6 +20,29 @@ void tip_thread(void *pvparams)
     beep_init();
     key_init(thread_pvparam->key_event);
 
+    do {
+        if(thread_pvparam->usart_parser_cmd_type_event != 0x00)
+            break;
+        else {
+            vTaskDelay(10);
+        }
+    }
+    while(1);
+
+    do {
+        if(thread_pvparam->display_event != 0x00)
+            break;
+        else {
+            vTaskDelay(10);
+        }
+    }
+    while(1);
+
+    xEventGroupSetBits(thread_pvparam->display_event,
+                       DISPLAY_USART_PROTOCOL_NORMOL);
+
+
+
     ESP_LOGI(__FUNCTION__, "thread start!");
     while(1)
     {
@@ -53,10 +76,18 @@ void tip_thread(void *pvparams)
             case KEY_EVENT_BIT_0:
                 xEventGroupSetBits(thread_pvparam->tip_event,
                                    TIP_EVENT_BIT_1);
+                xEventGroupSetBits(thread_pvparam->display_event,
+                                   DISPLAY_USART_PROTOCOL_NORMOL);
+                xEventGroupSetBits(thread_pvparam->usart_parser_cmd_type_event,
+                                   PARSER_USART_PROTOCOL_NORMAL);
                 break;
             case KEY_EVENT_BIT_1:
                 xEventGroupSetBits(thread_pvparam->tip_event,
                                    TIP_EVENT_BIT_2);
+                xEventGroupSetBits(thread_pvparam->display_event,
+                                   DISPLAY_USART_PROTOCOL_AI_DREAM);
+                xEventGroupSetBits(thread_pvparam->usart_parser_cmd_type_event,
+                                   PARSER_USART_PROTOCOL_AI_DREAM);
                 break;
             case KEY_EVENT_BIT_2:
                 xEventGroupSetBits(thread_pvparam->tip_event,
@@ -82,19 +113,19 @@ void tip_thread(void *pvparams)
         {
             case TIP_EVENT_BIT_0:
                 beep_toggle_enable = true;
-                freq_count = 500;
+                freq_count = 400;
                 break;
             case TIP_EVENT_BIT_1:
                 beep_enable = true;
-                freq_count = 500;
+                freq_count = 800;
                 break;
             case TIP_EVENT_BIT_2:
                 beep_enable = true;
-                freq_count = 600;
+                freq_count = 900;
                 break;
             case TIP_EVENT_BIT_3:
                 beep_enable = true;
-                freq_count = 700;
+                freq_count = 1000;
                 break;
             case TIP_EVENT_BIT_4:
                 beep_toggle_enable = false;
