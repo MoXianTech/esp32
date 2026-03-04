@@ -20,7 +20,7 @@
 
 #include "wifi_config.h"
 
-#define WIFI_MX_SYSTEM_MAIN
+#define WIFI_TESTSYSTEM_24
 
 #ifdef WIFI_OUTSIDE_AP
 /* 链接wifi名称 */

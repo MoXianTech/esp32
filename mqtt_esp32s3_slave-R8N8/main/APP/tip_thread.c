@@ -92,6 +92,9 @@ void tip_thread(void *pvparams)
             case KEY_EVENT_BIT_2:
                 xEventGroupSetBits(thread_pvparam->tip_event,
                                    TIP_EVENT_BIT_3);
+                xEventGroupSetBits(thread_pvparam->pressure_raw_upload_event,
+                                   EVENT_GET_PRESSURE_RAW_COM_0);
+
                 break;
 
             default:

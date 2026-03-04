@@ -16,6 +16,7 @@
 #include "lwip_thread.h"
 #include "wifi_config.h"
 #include "tip_thread.h"
+#include "esp_heap_caps.h"
 
 
 
@@ -259,6 +260,7 @@ void lwip_thread(void *pvparams)
 
     while(1)
     {
+        ESP_LOGI(__FUNCTION__, "MALLOC_CAP_SPIRAM %d byte", heap_caps_get_free_size(MALLOC_CAP_8BIT));
         if (xQueueReceive(thread_pvparam->queue_temp_humi, &queue_temp_humi, 0) == pdPASS)
         {
             cJSON_ReplaceItemInObject(mqtt_json_param, "Temperature", cJSON_CreateNumber(queue_temp_humi.temp_value));
@@ -308,13 +310,14 @@ void lwip_thread(void *pvparams)
                     memset(queue_pressure.pressure_context[count_bit_while].pressure_buffer, 0xff, 2);
                     queue_pressure.pressure_context[count_bit_while].pressure_data_size = 2;
                 }
+#if 1
                 esp_mqtt_client_publish(mqtt_client_handle,
                         DEVICE_BINARY_SEND_TOPIC,
                         (char *)queue_pressure.pressure_context[count_bit_while].pressure_buffer,
-                        queue_pressure.pressure_context[count_bit_while].pressure_data_size,
+                        queue_pressure.pressure_context[count_bit_while].pressure_data_size / 1,
                         1,
                         0);
-
+#endif
             }
 
         }
@@ -329,7 +332,7 @@ void lwip_thread(void *pvparams)
                 esp_mqtt_client_publish(mqtt_client_handle, DEVICE_SENSOR_INFO_POS, mqtt_buffer, strlen(mqtt_buffer), 1, 0);
             }
 #endif
-            ESP_LOGI(__FUNCTION__, "%s", mqtt_buffer);
+            //ESP_LOGI(__FUNCTION__, "%s", mqtt_buffer);
             cJSON_free(mqtt_buffer);
             upload_flag = 0x00;
         }
