@@ -2,7 +2,7 @@
 #define __LWIP_THREAD_H__
 
 //#define RECORD_DEVICE_BOARD
-#define TEST_10_BOARD
+#define TEST_2_BOARD
 
 
 #ifdef TEST_1_BOARD
@@ -43,7 +43,7 @@
 #define PASSWORD            "66aa130cebd5baa4721ae5b5798d370c4582760ce8be953f566b354febe9fcd0"                          /* 由MQTT_Password工具计算得出的连接密码 */
 /* 发布与订阅 */
 #define DEVICE_PUBLISH      "/"PRODUCT_KEY"/"DEVICE_NAME"/user/update"                          /* 发布 */
-#define DEVICE_SUBSCRIBE    "/"PRODUCT_KEY"/"DEVI E_NAME"/user/get"                             /* 订阅 */
+#define DEVICE_SUBSCRIBE    "/"PRODUCT_KEY"/"DEVICE_NAME"/user/get"                             /* 订阅 */
 
 #define DEVICE_SENSOR_INFO_POS    "/sys/"PRODUCT_KEY"/"DEVICE_NAME"/thing/event/property/post"
 #endif

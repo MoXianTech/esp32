@@ -20,7 +20,7 @@
 
 #include "wifi_config.h"
 
-#define WIFI_TESTSYSTEM_24
+#define WIFI_MXKJ
 
 #ifdef WIFI_OUTSIDE_AP
 /* 链接wifi名称 */
@@ -63,6 +63,16 @@
 #define DEFAULT_SSID        "testsystem24"
 /* wifi密码 */
 #define DEFAULT_PWD         "weizihan"
+
+#endif
+
+#ifdef WIFI_MXKJ
+/* 链接wifi名称 */
+#define DEFAULT_SSID        "MXKJ"
+/* wifi密码 */
+#define DEFAULT_PWD         "Mxkjd104+++"
+
+
 #endif
 
 #ifdef WIFI_MX_SYSTEM_MAIN

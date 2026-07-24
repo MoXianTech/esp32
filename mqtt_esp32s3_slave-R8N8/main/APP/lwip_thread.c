@@ -19,7 +19,6 @@
 #include "esp_heap_caps.h"
 
 
-
 int g_publish_flag = 0;/* 发布成功标志位 */
 static const char *TAG = "MQTT_EXAMPLE";
 char g_lcd_buff[100] = {0};

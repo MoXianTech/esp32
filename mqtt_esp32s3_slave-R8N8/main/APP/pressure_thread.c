@@ -221,7 +221,8 @@ RS2251_USART_NUM_T rs2251_usart_range[PORT_USART_NUM] = {
     USART_NUM_7
 };
 
-#define PRESS_COM_BPS 460800
+#define PRESS_COM_BPS 921600
+//#define PRESS_COM_BPS 460800
 //#define PRESS_COM_BPS 115200
 
 void pressure_thread(void *pvparams)
